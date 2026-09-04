@@ -1,0 +1,86 @@
+mrna_count:
+  # base experiment path
+  # expected files/folders include:
+  #   <data_path_base>/roi_summary.csv
+  #   <data_path_base>/confocal_63x_<ROI>/CP_inputs/
+  #   <data_path_base>/confocal_63x_<ROI>/output_masks/
+  #   <data_path_base>/SF_analysis/
+  data_path_base: "/path/to/experiment"
+
+  # ROI
+  roi_folder_prefix: "confocal_63x_"
+
+  roi_list:
+    - ROI1
+    - ROI2
+    - ROI3
+    - ROI4
+    - ROI5
+
+  # channels used for mRNA counting.
+  # these should match the CP_inputs filenames such as:
+  #   C2-<image_id>.tif
+  #   C4-<image_id>.tif
+  used_channels:
+    - C2
+    - C4
+
+  # gene names corresponding to used_channels, in the same order.
+  channel_gene_names:
+    - geneA
+    - geneB
+
+  # input image identifiers
+  # the base image IDs used to identify files in each ROI CP_inputs folder.
+  image_id_list:
+    - "image1"
+    - "image2"
+    - "image3"
+    - "image4"
+    - "image5"
+
+  # Z-plane step index for structure_data.py
+  # one entry per ROI. Example: 3 for filenames "-0003.tif"
+  used_z_list:
+    - 3
+    - 3
+    - 3
+    - 3
+    - 3
+
+  # One entry per ROI.
+  # Use null for no cropping.
+  selection_rect:
+    - null
+    - null
+    - null
+    - null
+    - null
+
+  # Z thickness used for SpaceTx coordinate metadata.
+  z_thickness: 1.0
+
+  # detect_mrna_spots.py
+  # parameters for BlobDetector to detect mRNA spots 
+  min_sigma: 3
+  max_sigma: 10
+  num_sigma: 1
+  search_radius: 10 
+  # number of Otsu classes used to generate blob thresholds.
+  otsu_n_classes: 3
+
+  # output folder structure: 
+  #   SF_analysis/SF_outputs/preprocess_outputs/
+  #   SF_analysis/SF_outputs/threshold_outputs/
+  #   SF_analysis/SF_outputs/detection_outputs/
+
+  # summarize_spots_barrels.py and summarize_spots_experiment.py
+  # minimum ROI area-overlap ratio used to include a barrel mask.
+  roi_area_thresh: 0.4
+
+  # mask suffix for files in:
+  #   <data_path_base>/confocal_63x_<ROI>/output_masks/
+  mask_suffix: "_transformed.tif"
+
+  # JSON file used by summarize_spots_experiment.py specifying list of spared and deprived barrels. 
+  spared_deprived_groups_fn: "configs/spared_deprived_barrels.json"

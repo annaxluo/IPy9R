@@ -1,0 +1,72 @@
+# configs/alignment.yaml
+
+alignment:
+  # JSON parameter filename for TemplateMatchingScale
+  param_fn: "/path/to/confocal_20x/alignment_params.json"
+
+  # High-magnification target image filename
+  image_fn: "/path/to/confocal_20x/CP_inputs/C3-slide-stack.tif"
+
+  # Lower-magnitification template image containing the original barrel annotations
+  template_fn: "/path/to/keyence/input_images/keyence_image.tif"
+
+  # Output directory for visual validation outputs
+  val_output_dir: "/path/to/confocal_20x/output_masks/val"
+
+  # Initial mask in template pixel coordinates: [Y, X, H, W]
+  # Use null to let TemplateMatchingScale create a default centered mask.
+  init_mask_coords: [1551, 3363, 500, 400]
+
+  # Search scale range.
+  scale_min: 0.8
+  scale_max: 1.2 
+
+  # Search-region crop in the target image, [row, col], or null
+  image_crop_ul: null
+
+  # Search-region crop size in the target image, [height, width], or null
+  image_crop_hw: null
+
+  # Downsample factor for target image before matching
+  image_scale_factor: 0.60
+
+  # Crop in the template image, [row, col], or null
+  template_crop_ul: null
+
+  # Crop size in the template image, [height, width], or null
+  template_crop_hw: null
+
+  # Downsample factor for template image before matching
+  template_scale_factor: 0.12
+
+
+transform_masks:
+  # Parameter file produced by the alignment step
+  param_fn: "/path/to/confocal_20x/alignment_params.json"
+
+  # Mask directory
+  mask_dir: "/path/to/keyence/input_masks"
+
+  # Masks to transform
+  used_masks:
+    - delta
+    - A1
+    - A2
+    - B1
+    - B2
+    - B3
+    - C1
+    - C2
+    - C3
+    - D1
+    - D2
+    - D3
+    - E1
+    - E2
+
+  # Boundary mask filename
+  boundary_mask_fn: "/path/to/confocal_20x/output_masks/image_boundary_mask.tif"
+
+  # Output directory for transformed masks
+  output_dir: "/path/to/confocal_20x/output_masks"
+

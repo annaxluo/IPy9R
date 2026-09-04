@@ -1,0 +1,42 @@
+shared:
+  # base data path 
+  data_path: /data_base
+  # z stack step id
+  stack_str: stack01
+  # slide id
+  slide_id: slide01
+  # channel id for nuclei (DAPI)
+  nuclei_ch: C3
+  # channel id for mRNA 
+  rna_ch: C1
+
+  # used mask ids
+  mask_stack:
+    - B2
+    - B3
+    - C2
+    - C3
+    - C4
+    - C5
+    - C6
+    - D1
+    - D2
+    - D3
+    - D4
+    - D5
+    - D6
+    - D7
+    - delta
+    - E1
+    - E2
+    - E3
+
+preprocess_cellprofiler:
+  max_h: 2000
+  max_w: 2000
+
+analyze_cellcount: {}
+
+compute_stats:
+  # json file for spared and deprived barrel definition
+  spared_deprived_groups_fn: "configs/spared_deprived_barrels.json"

@@ -1,0 +1,116 @@
+name: CI light
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  light-checks:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install lightweight tooling only
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build validate-pyproject PyYAML ruff
+
+      - name: Validate pyproject.toml
+        run: |
+          validate-pyproject pyproject.toml
+
+      - name: Install package without dependencies
+        run: |
+          python -m pip install -e . --no-deps
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall -q src
+
+      - name: Lint with ruff
+        run: |
+          ruff check src
+
+      - name: Validate YAML configs
+        run: |
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+
+          for path in Path("configs").glob("*.yaml"):
+              print(f"Checking {path}")
+              with path.open("r") as f:
+                  yaml.safe_load(f)
+
+          print("YAML config files are valid.")
+          PY
+
+      - name: Check package discovery
+        run: |
+          python - <<'PY'
+          import importlib.util
+
+          packages = [
+              "IPy9R",
+              "IPy9R.alignment",
+              "IPy9R.cell_count",
+              "IPy9R.mrna_count",
+          ]
+
+          for package in packages:
+              spec = importlib.util.find_spec(package)
+              if spec is None:
+                  raise AssertionError(f"Could not find package: {package}")
+              print(f"{package}: found")
+
+          print("Package discovery OK.")
+          PY
+
+      - name: Check CLI modules define main functions
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          modules = [
+              "src/IPy9R/alignment/run_template_matching.py",
+              "src/IPy9R/alignment/transform_masks.py",
+              "src/IPy9R/cell_count/preprocess_cellprofiler.py",
+              "src/IPy9R/cell_count/analyze_cellcount.py",
+              "src/IPy9R/cell_count/compute_stats.py",
+              "src/IPy9R/mrna_count/structure_data.py",
+              "src/IPy9R/mrna_count/detect_mrna_spots.py",
+              "src/IPy9R/mrna_count/summarize_spots_barrels.py",
+              "src/IPy9R/mrna_count/summarize_spots_experiment.py",
+          ]
+
+          for module in modules:
+              path = Path(module)
+              tree = ast.parse(path.read_text())
+              function_names = {
+                  node.name for node in ast.walk(tree)
+                  if isinstance(node, ast.FunctionDef)
+              }
+
+              if "main" not in function_names:
+                  raise AssertionError(f"{path} does not define main()")
+
+              print(f"{path}: main() found")
+
+          print("All CLI modules define main().")
+          PY
+
+      - name: Build source distribution and wheel
+        run: |
+          python -m build --sdist --wheel
