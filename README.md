@@ -1,6 +1,6 @@
 # IPy9R
 
-[![CI](https://github.com/annxluo/IPy9R/actions/workflows/ci.yml/badge.svg)](https://github.com/annxluo/IPy9R/actions)
+[![CI Status](https://github.com/annxluo/IPy9R/actions/workflows/ci-light.yml/badge.svg)](https://github.com/annaxluo/IPy9R/actions)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 `IPy9R` is a Python package for image-processing workflows to quantify smFISH data in my thesis project. 
