@@ -3,21 +3,21 @@
 [![CI](https://github.com/annaxluo/IPy9R/actions/workflows/ci-light.yml/badge.svg)](https://github.com/annaxluo/IPy9R/actions/workflows/ci-light.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-`IPy9R` is a Python package for image-processing workflows to quantify smFISH data in my thesis project. 
+`IPy9R` is a Python package containing image-processing workflows developed to quantify single-molecule fluorescence in situ hybridization (smFISH) data in my thesis project.
 
 ## Main workflows
 
 ### 1. Image alignment
 
-- Align lower-resolution images to higher-resolution images using multi-scale template matching and perspective transformation.
-- Transform annotations of barrels in the mouse posteromedial barrel subfield (PMBSF) from low-resolution images into the high-resolution image.
+- Align lower-resolution images to higher-resolution images using **multi-scale template matching** and **perspective transformation**.
+- Transform annotations of barrels in the mouse posteromedial barrel subfield (PMBSF) from lower-resolution images into barrel masks for higher-resolution images.
 
 ### 2. Cell counting
 
 - Preprocess images for `CellProfiler` by creating tiles.
 - Combine CellProfiler tile outputs. 
-- Count DAPI-positive nuclei and marker-based cell type (e.g., Hexb-positive microglia) inside barrel masks.
-- Compute cell density and cell-to-nuclei ratios.
+- Count DAPI-positive nuclei and marker-based cell types (e.g., Hexb-positive microglia) inside barrel masks.
+- Compute cell density and cell-to-nuclei ratio.
 
 ### 3. mRNA spot counting
 
@@ -48,13 +48,13 @@ conda activate ipy9r
 
 ### 3. Install the package
 
-Installing the base functions: 
+Install the base package: 
 
 ```bash
 pip install -e .
 ```
 
-Additional optional packages are required for some functions, such as `OpenCV`, `Starfish`, and `SlicedImage`.
+Additional optional packages are required for some workflows, including `OpenCV`, `Starfish`, and `SlicedImage`.
 
 To install only the dependencies needed for a specific workflow:
 
@@ -83,13 +83,13 @@ configs/cell_count.yaml
 configs/mrna_count.yaml
 ```
 
-Modify inputs in these configuration files for new data. 
+Modify the input paths and parameters in these configuration files for new data. 
 
 ---
 
-## Task 1: Image alignment
+## Workflow 1: Image alignment
 
-We aimed to quantify gene expression in the mouse posteromedial barrel subfield (PMBSF). We found that boundaries of barrels in a tangential section could be identified using the GFP autofluorescence in 10x images acquired on the widefield microscope. 
+We aimed to quantify gene expression in the mouse posteromedial barrel subfield (PMBSF). We found barrel boundaries in a tangential section could be identified using the GFP autofluorescence in 10x images acquired on a widefield microscope. 
 
 However, GFP autoflourescence was weaker in higher-resolution confocal images (e.g., 20x, 63x) where smFISH puncta were detected. To **enable identification of barrel boundaries at higher-resolution images**, I designed an image process pipeline with the following steps: 
 - Takes in fluorescence images from the same channel (e.g., DAPI) acquired at low and high resolutions, and estimate the best scaling factor for the low-resolution image via **multi-scale template matching**. 
@@ -111,7 +111,7 @@ Important fields:
 | Field | Description |
 |---|---|
 | `alignment.param_fn` | Output JSON file where alignment parameters are stored. |
-| `alignment.image_fn` | Path to high-resoltution image. |
+| `alignment.image_fn` | Path to high-resolution image. |
 | `alignment.template_fn` | Path to lower-resolution template. |
 | `alignment.val_output_dir` | Directory for validation images. |
 | `alignment.init_mask_coords` | Initial template mask coordinates as `[Y, X, H, W]` to restrict search region. Use `null` for default. |
@@ -152,7 +152,7 @@ Example outputs:
 ...
 ```
 
-## Task 2: Cell counting
+## Workflow 2: Cell counting
 
 The package includes utilities to count the number of DAPI-positive nuclei and a marker-based cell type using `CellProfiler`, and compute the cell density and cell-to-nuclei ratio for individual barrels. 
 
@@ -168,7 +168,7 @@ Important fields:
 | Field | Description |
 |---|---|
 | `shared.data_path` | Base path for data. |
-| `shared.stack_str` | Stack identifier, for example `stack01`. |
+| `shared.stack_str` | Stack ID, for example `stack01`. |
 | `shared.slide_id` | Slide ID. |
 | `shared.nuclei_ch` | DAPI/nuclei channel ID. |
 | `shared.rna_ch` | RNA/cell-marker channel ID. |
@@ -362,12 +362,12 @@ Expected output:
 
 ## Spared/deprived barrel groups
 
-Both the cell-counting and mRNA-counting workflows can use a JSON file defining spared and deprived barrels: 
+Both the cell-counting and mRNA-counting workflows use a JSON file to define spared and deprived barrels: 
 
 ```json
 {
-  "spared": ["B2", "B3", "C2", "C3"],
-  "deprived": ["D1", "D2", "D3"]
+  "spared": ["A1","A3","beta","B2"],
+  "deprived": ["alpha","A2","A4","B1"]
 }
 ```
 
