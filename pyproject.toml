@@ -70,22 +70,24 @@ dev = [
 ]
 
 all = [
-  "IPy9R[alignment,cell-count,mrna-count]"
+  "opencv-python",
+  "starfish",
+  "slicedimage"
 ]
 
 
 [project.scripts]
-ipy9r-align = "IPy9R.alignment.run_template_matching:main"
-ipy9r-transform-masks = "IPy9R.alignment.transform_masks:main"
+ipy2r-run-template-matching = "IPy9R.alignment.run_template_matching:main"
+ipy2r-transform-masks = "IPy9R.alignment.transform_masks:main"
 
-ipy9r-preprocess-cellprofiler = "IPy9R.cell_count.preprocess_cellprofiler:main"
-ipy9r-analyze-cellcount = "IPy9R.cell_count.analyze_cellcount:main"
-ipy9r-compute-stats = "IPy9R.cell_count.compute_stats:main"
+ipy2r-preprocess-cellprofiler = "IPy9R.cell_count.preprocess_cellprofiler:main"
+ipy2r-analyze-cellcount = "IPy9R.cell_count.analyze_cellcount:main"
+ipy2r-compute-stats = "IPy9R.cell_count.compute_stats:main"
 
-ipy9r-structure-data = "IPy9R.mrna_count.structure_data:main"
-ipy9r-detect-mrna-spots = "IPy9R.mrna_count.detect_mrna_spots:main"
-ipy9r-summarize-spots-barrels = "IPy9R.mrna_count.summarize_spots_barrels:main"
-ipy9r-summarize-spots-experiment = "IPy9R.mrna_count.summarize_spots_experiment:main"
+ipy2r-structure-data = "IPy9R.mrna_count.structure_data:main"
+ipy2r-detect-mrna-spots = "IPy9R.mrna_count.detect_mrna_spots:main"
+ipy2r-summarize-spots-barrels = "IPy9R.mrna_count.summarize_spots_barrels:main"
+ipy2r-summarize-spots-experiment = "IPy9R.mrna_count.summarize_spots_experiment:main"
 
 
 [tool.setuptools]
