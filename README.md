@@ -1,26 +1,30 @@
 # IPy9R
 
-[![CI](https://github.com/annaxluo/IPy9R/actions/workflows/ci-light.yml/badge.svg)](https://github.com/annaxluo/IPy9R/actions/workflows/ci-light.yml)
+[![CI](https://github.com/annxluo/IPy9R/actions/workflows/ci.yml/badge.svg)](https://github.com/annxluo/IPy9R/actions)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-`IPy9R` is a Python package that contains the image-processing workflows in my thesis project to quantify smFISH data. The package currently supports three main analyses:
+`IPy9R` is a Python package for image-processing workflows to quantify smFISH data in my thesis project. 
 
-1. **Image alignment**
-- Estimate a model to project lower-magnification images (e.g., 10x) to higher-magnification images (e.g., 63x) using multi-scale template matching followed by perspective transformation. 
-- Transform annotations of barrels in the mouse posteromedial barrel subfield (PMBSF) made in lower-magnification images to barrel mask for higher-magnification images.
+## Main workflows
 
-2. **Cell counting**
+### 1. Image alignment
+
+- Align lower-resolution images to higher-resolution images using multi-scale template matching and perspective transformation.
+- Transform annotations of barrels in the mouse posteromedial barrel subfield (PMBSF) from low-resolution images into the high-resolution image.
+
+### 2. Cell counting
+
 - Preprocess images for `CellProfiler` by creating tiles.
-- Combine `CellProfiler` tile outputs, and aggregate counts of DAPI-positive nuclei and specific cell types (e.g., microglia) inside each barrel of the PMBSF.
-- Compute cell density and cell-to-nuclei ratios for each barrel. 
+- Combine CellProfiler tile outputs. 
+- Count DAPI-positive nuclei and marker-based cell type (e.g., Hexb-positive microglia) inside barrel masks.
+- Compute cell density and cell-to-nuclei ratios.
 
-3. **mRNA spot counting**
-- Make data structure for confocal image data compatible for `Starfish`.
-- Detect mRNA puncta using `BlobDetector` in `Starfish`.
-- Count spots inside individual barrels.
+### 3. mRNA spot counting
+
+- Convert confocal image data into a Starfish-compatible structure.
+- Detect mRNA puncta using Starfish `BlobDetector`.
+- Count spots inside barrel masks.
 - Summarize spot counts across ROIs and experiments.
-
-The package uses a `src/` layout and is configured through YAML files in the `configs/` directory.
 
 ---
 
@@ -52,21 +56,11 @@ pip install -e .
 
 Additional optional packages are required for some functions, such as `OpenCV`, `Starfish`, and `SlicedImage`.
 
-To install alignment dependencies:
+To install only the dependencies needed for a specific workflow:
 
 ```bash
 pip install -e ".[alignment]"
-```
-
-To install cell-counting dependencies:
-
-```bash
 pip install -e ".[cell-count]"
-```
-
-To install mRNA-counting dependencies:
-
-```bash
 pip install -e ".[mrna-count]"
 ```
 
@@ -89,21 +83,21 @@ configs/cell_count.yaml
 configs/mrna_count.yaml
 ```
 
-Modify inputs in these configuration files. 
+Modify inputs in these configuration files for new data. 
 
 ---
 
 ## Task 1: Image alignment
 
-To evaluate gene expression in the mouse posteromedial barrel subfield (PMBSF), we identified a method to method to delineate barrel boundaries using autofluorescence signal in the GFP channel in 10x images acquired on a widefield microscope. 
+We aimed to quantify gene expression in the mouse posteromedial barrel subfield (PMBSF). We found that boundaries of barrels in a tangential section could be identified using the GFP autofluorescence in 10x images acquired on the widefield microscope. 
 
-However, green autoflourescence was weaker at the higher resolutions (e.g., 20x, 63x) at which the smFISH signals were detected. To **enable identification of barrel boundaries at higher resolutions**, I designed an image process pipeline that includes the following steps: 
-- Takes in fluorescence images of the same channel (e.g., DAPI) acquired at low and high resolution, and estimate the best scaling factor for the low-resolution image via **multi-scale template matching**. 
-- Scales the low-resolution image, and estimate the **perspective transformation** matrix that project the low-resolution image to high-resolution image. 
-- Applies the optimal scaling factor and perspective transformation matrix (defined as an "Alignment Parameter Set") to barrel annotations (binary masks of individual barrels) made a low resolution to estimate barrel masks at high resolution. 
+However, GFP autoflourescence was weaker in higher-resolution confocal images (e.g., 20x, 63x) where smFISH puncta were detected. To **enable identification of barrel boundaries at higher-resolution images**, I designed an image process pipeline with the following steps: 
+- Takes in fluorescence images from the same channel (e.g., DAPI) acquired at low and high resolutions, and estimate the best scaling factor for the low-resolution image via **multi-scale template matching**. 
+- Scales the low-resolution image, and estimates the **perspective transformation** matrix that projects the low-resolution image to high-resolution image. 
+- Applies the optimal scaling factor and perspective transformation matrix (defined as an "Alignment Parameter Set") to barrel annotations (binary masks of individual barrels) made a low resolution to estimate barrel masks at high resolution for downstream cell and mRNA quantification. 
 
 <p align="center">
-  <img src="docs/assets/multi-scale-alignment.jpg" alt="Projecting barrel masks from lower-magnification to higher-magnification" width="700">
+  <img src="docs/assets/multi-scale-alignment.jpg" alt="Projecting barrel masks from lower-resolution to higher-resolution" width="700">
 </p>
 
 ### 1.1 Update `alignment.yaml`
@@ -130,19 +124,15 @@ Important fields:
 ### 1.2 Run template matching
 
 ```bash
-ipy2r-run-template-matching --config configs/my_alignment.yaml
+ipy2r-run-template-matching --config configs/alignment.yaml
 ```
 
-This step writes alignment parameters to:
+Example outputs:
 
 ```text
-alignment.param_fn
-```
-
-and validation images to:
-
-```text
-alignment.val_output_dir
+<val_output_dir>/val_init_mask_templ.tif
+<val_output_dir>/val_init_mask_out.tif
+<alignment.param_fn>
 ```
 
 Inspect the validation outputs before proceeding.
@@ -151,14 +141,16 @@ Inspect the validation outputs before proceeding.
 ### 1.3 Transform barrel masks
 
 ```bash
-ipy2r-transform-masks --config configs/my_alignment.yaml
+ipy2r-transform-masks --config configs/alignment.yaml
 ```
 
-This step reads the masks listed under `transform_masks.used_masks`, transforms them using the saved alignment parameters, applies the image boundary mask, and saves the transformed masks to:
+Example outputs:
+
 ```text
-transform_masks.output_dir
+<transform_masks.output_dir>/B2_transformed.tif
+<transform_masks.output_dir>/B3_transformed.tif
+...
 ```
-
 
 ## Task 2: Cell counting
 
@@ -204,19 +196,12 @@ Expected input structure under `data_path`:
 Create smaller tiles from fluorescence images for RAM-constrained systems: 
 
 ```bash
-ipy2r-preprocess-cellprofiler --config configs/my_cell_count.yaml
+ipy2r-preprocess-cellprofiler --config configs/cell_count.yaml
 ```
 
-This creates image tiles under:
-
+Expected outputs: 
 ```text
 <data_path>/CP_inputs/image_tiles_<stack_str>/
-```
-
-The tile metadata file should be:
-
-```text
-<data_path>/CP_inputs/image_tiles_<stack_str>/<nuclei_ch>-<slide_id>-<stack_str>_tiles.csv
 ```
 
 ### 2.3 Run CellProfiler externally
@@ -232,20 +217,14 @@ The expected CellProfiler output file is:
 ### 2.4 Analyze CellProfiler nuclei outputs
 
 ```bash
-ipy2r-analyze-cellcount --config configs/my_cell_count.yaml
+ipy2r-analyze-cellcount --config configs/cell_count.yaml
 ```
 
-This step:
-1. Combines tile-level CellProfiler outputs.
-2. Selects nuclei inside transformed masks.
-3. Writes visualization and CSV outputs.
-
-Expected outputs include:
-
+Outputs include:
 ```text
 <data_path>/CP_outputs/<stack_str>_Nuclei_obj_combinedTiles.csv
-<data_path>/CP_outputs/<stack_str>_Nuclei_obj_inMask.tif
 <data_path>/CP_outputs/<stack_str>_Nuclei_obj_inMask.csv
+<data_path>/CP_outputs/<stack_str>_Nuclei_obj_inMask.tif
 ```
 
 ### 2.5 Manually curate nuclei selections 
@@ -262,13 +241,7 @@ This file is used by the statistics step.
 
 Compute statistics, including cell density, and cell-to-nuclei ratio, for each barrel: 
 ```bash
-ipy2r-compute-stats --config configs/my_cell_count.yaml
-```
-
-This step expects:
-```text
-<data_path>/CP_outputs/<stack_str>_Nuclei_obj_inMask_v2.csv
-<data_path>/CP_outputs/CellCount_<rna_ch>-<slide_id>-<stack_str>.csv
+ipy2r-compute-stats --config configs/cell_count.yaml
 ```
 
 Outputs include:
@@ -333,7 +306,7 @@ Expected input structure:
 ### 3.2 Structure data for Starfish
 
 ```bash
-ipy2r-structure-data --config configs/my_mrna_count.yaml
+ipy2r-structure-data --config configs/mrna_count.yaml
 ```
 
 This step creates structured Starfish input data under:
@@ -344,38 +317,23 @@ This step creates structured Starfish input data under:
 
 ### 3.3 Detect mRNA spots
 
+Detect mRNA puncta using: 
 ```bash
-ipy2r-detect-mrna-spots --config configs/my_mrna_count.yaml
+ipy2r-detect-mrna-spots --config configs/mrna_count.yaml
 ```
 
-This step loads the Starfish experiment, preprocesses images, computes thresholds, detects spots, and writes detection outputs. We use the OTSU's method to estimate the `threshold` parameter for `BlobDetector`. 
-
 Expected output folders:
-
 ```text
 <data_path_base>/SF_analysis/SF_outputs/preprocess_outputs/
 <data_path_base>/SF_analysis/SF_outputs/threshold_outputs/
 <data_path_base>/SF_analysis/SF_outputs/detection_outputs/
 ```
 
-Example detection outputs:
-
-```text
-thresh0-f0-c0-r0-z0.csv
-thresh0-f0-c0-r0-z0.tiff
-thresh1-f0-c1-r0-z0.csv
-```
-
-The step also updates the threshold parameters in:
-
-```text
-<data_path_base>/SF_analysis/data_structure.json
-```
 
 ### 3.4 Summarize spots inside barrel masks
 
 ```bash
-ipy2r-summarize-spots-barrels --config configs/my_mrna_count.yaml
+ipy2r-summarize-spots-barrels --config configs/mrna_count.yaml
 ```
 
 This step applies transformed barrel masks to detected spots and computes the spot count and density per barrel.
@@ -386,17 +344,10 @@ Expected output folder:
 <data_path_base>/SF_analysis/SF_outputs/mask_outputs/
 ```
 
-Example outputs:
-
-```text
-thresh0-f0-c0-r0-z0.csv
-thresh0-f0-c0-r0-z0.tif
-```
-
 ### 3.5 Summarize spots across the experiment
 
 ```bash
-ipy2r-summarize-spots-experiment --config configs/my_mrna_count.yaml
+ipy2r-summarize-spots-experiment --config configs/mrna_count.yaml
 ```
 
 This step combines ROI-level and barrel-level spot counts across the experiment.
